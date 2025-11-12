@@ -1,0 +1,66 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+
+package "Notification Sources" as ns {
+    together {
+        HTTP - [SourceClient]
+    }
+    [SourceService1] as ss1
+    [SourceService2] as ss2
+}
+
+queue "notification.need-handle" as nh {
+}
+
+queue "notification.need-send" as nns {
+}
+
+
+package "Notification Channels" as nc {
+    [EmailChannel] as ec
+    [PushChannel] as pc
+    [SMSChannel] as sc
+}
+
+queue "channel-email.need-send" as cens {
+}
+
+queue "channel-push.need-send" as cpns {
+}
+
+queue "channel-sms.need-send" as csns {
+}
+
+[Hub Listener] as hl
+
+[HubSubmitter] as hs
+
+[UserService] as us
+
+[NotificationSender] as nos
+
+[SourceClient] --> hs
+
+hs ..> nh : push
+
+ss1 ..> nh : push
+ss2 ..> nh : push
+
+nh ..> hl : consume
+
+hl --> us : gRPC
+
+hl ..> nns : push
+
+nns ..> nos : consume
+
+nos ..> cens : push
+nos ..> cpns : push
+nos ..> csns : push
+
+cens ..> ec : consume
+cpns ..> pc : consume
+csns ..> sc : consume
+
+@enduml
