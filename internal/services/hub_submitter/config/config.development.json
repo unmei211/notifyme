@@ -1,0 +1,10 @@
+{
+  "serviceName": "hub_submitter",
+  "httpServer": {
+    "port": 8056,
+    "env": "local",
+    "basePath": "api/rest",
+    "timeout": 15,
+    "host": "localhost"
+  }
+}

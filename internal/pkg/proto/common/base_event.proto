@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package common;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = ".;base_event";
+
+message CorrelationInfo {
+  string message_id = 1;
+  string correlation_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message BaseEvent {
+  CorrelationInfo correlation_info = 1;
+  string type = 2;
+  bytes payload = 3;
+}
