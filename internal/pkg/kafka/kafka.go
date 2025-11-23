@@ -1,6 +1,10 @@
 package kafka
 
-import "go.uber.org/zap"
+import (
+	"context"
+
+	"go.uber.org/zap"
+)
 
 type Topic string
 
@@ -28,9 +32,8 @@ func newKafkaLogger(logger *zap.SugaredLogger) *kafkaLogger {
 	return &kafkaLogger{logger: logger}
 }
 
-func Init(cfg *Config, zap *zap.SugaredLogger) (producer *ProducerManager) {
-	logger := newKafkaLogger(zap)
-	producerManager := InitProducers(cfg, logger)
+func Init(cfg *Config, zap *zap.SugaredLogger, ctx context.Context) (producer *ProducerManager) {
+	producerManager := InitProducers(cfg, zap, ctx)
 
 	return producerManager
 }
