@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	httpserver "github.com/unmei211/notifyme/internal/pkg/http_server/server"
+	"github.com/unmei211/notifyme/internal/pkg/logger"
 )
 
 var configPath string
@@ -22,10 +23,10 @@ func init() {
 type Config struct {
 	ServiceName string             `mapstructure:"serviceName"`
 	HttpServer  *httpserver.Config `mapstructure:"httpServer"`
+	Logger      *logger.Config     `mapstructure:"logger"`
 }
 
 func InitConfig() (*Config, error) {
-
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "development"

@@ -32,11 +32,11 @@ queue "channel-push.need-send" as cpns {
 queue "channel-sms.need-send" as csns {
 }
 
-[Hub Listener] as hl
+[NotificationHandler] as noh
+
+[SubscriptionService] as ss
 
 [HubSubmitter] as hs
-
-[UserService] as us
 
 [NotificationSender] as nos
 
@@ -47,11 +47,11 @@ hs ..> nh : push
 ss1 ..> nh : push
 ss2 ..> nh : push
 
-nh ..> hl : consume
+nh ..> noh : consume
 
-hl --> us : gRPC
+noh --> ss : gRPC
 
-hl ..> nns : push
+noh ..> nns : push
 
 nns ..> nos : consume
 

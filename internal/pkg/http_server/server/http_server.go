@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 const (
@@ -30,26 +31,23 @@ func NewHttpServer() *echo.Echo {
 func RunHttpServer(
 	ctx context.Context,
 	echo *echo.Echo,
-	//TODO logger.ILo,
+	log *zap.SugaredLogger,
 	cfg *Config) error {
 	echo.Server.ReadTimeout = ReadTimeout
 	echo.Server.WriteTimeout = WriteTimeout
 	echo.Server.MaxHeaderBytes = MaxHeaderBytes
 
+	log.Info("Try run http server")
 	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				err := echo.Shutdown(ctx)
-				if err != nil {
-					return
-				}
-				return
-			}
+		<-ctx.Done()
+		err := echo.Shutdown(ctx)
+		if err != nil {
+			return
 		}
+		return
 	}()
 
-	err := echo.Start(cfg.Port)
+	err := echo.Start("localhost:" + cfg.Port)
 	return err
 }
 

@@ -6,5 +6,9 @@
     "basePath": "api/rest",
     "timeout": 15,
     "host": "localhost"
+  },
+  "logger": {
+    "level": "debug",
+    "format": "console"
   }
 }
