@@ -1,6 +1,10 @@
 package messaging
 
-import "time"
+import (
+	"time"
+
+	uuid "github.com/satori/go.uuid"
+)
 
 type MessageType string
 
@@ -10,10 +14,10 @@ const (
 )
 
 type Message struct {
-	MessageId     string
+	MessageId     uuid.UUID
 	Source        string
-	CorrelationId string
-	Payload       interface{}
+	CorrelationId uuid.UUID
+	Payload       map[string]interface{}
 	Type          MessageType
 	Name          string
 	CreatedAt     time.Time

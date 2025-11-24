@@ -19,7 +19,7 @@ type Consumer interface {
 	Consume(msg *messaging.Message)
 }
 
-type ConsumeHandler func(msg *messaging.Message, topic Topic)
+type ConsumeHandler func(msg *messaging.Message, topic Topic) error
 
 func (c *kafkaConsumer) Consume(msg *messaging.Message) {
 

@@ -2,10 +2,20 @@ services:
   infra-postgres:
     ports:
       - "5432:5432"
+  infra-kafka:
+    image: bitnami/kafka:3.6.0
+    ports:
+      - "9092:9092"
+  infra-tofu:
+    build:
+      context: deploy/tofu
+  infra-kafka-ui:
+    ports:
+      - "9000:8080"
   hub_submitter:
     build:
       context: internal
-      dockerfile: services/hub_submitter/DockerfileDev
+      dockerfile: services/hub_submitter_service/DockerfileDev
     ports:
       - "8056:8056"
       - "40000:40000"

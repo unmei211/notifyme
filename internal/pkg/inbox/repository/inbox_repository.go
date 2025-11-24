@@ -4,18 +4,17 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/unmei211/notifyme/internal/pkg/messaging"
+	"gorm.io/datatypes"
 )
 
 type Repository interface {
-	ExistsByMessageId(messageId string) (bool, error)
-	Add(msg *MessageInbox) error
+	ExistsByMessageId(messageId uuid.UUID) (bool, error)
+	Add(msg *MessageInbox) (*MessageInbox, error)
 }
-
 type MessageInbox struct {
-	MessageId   uuid.UUID
+	MessageId   uuid.UUID `gorm:"primaryKey"`
 	Topic       string
 	ReceivedAt  time.Time
 	ProcessedAt time.Time
-	Payload     messaging.Message
+	Payload     datatypes.JSON `gorm:"type:jsonb"`
 }

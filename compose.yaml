@@ -1,4 +1,5 @@
 services:
+  #  infra
   infra-postgres:
     image: postgres:17-alpine
     environment:
@@ -7,15 +8,69 @@ services:
       POSTGRES_USER: "${INFRA_POSTGRES_USER}"
       POSTGRES_PASSWORD: "${INFRA_POSTGRES_PASSWORD}"
     shm_size: 128mb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${INFRA_POSTGRES_USER} -d ${INFRA_POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./deploy/postgres/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
+  infra-kafka:
+    image: bitnami/kafka:3.6.0
+    environment:
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9093
+      KAFKA_CFG_NODE_ID: 1
+    volumes:
+      - kafka_data:/bitnami/kafka
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  infra-tofu:
+    build:
+      context: deploy/tofu
+    environment:
+      TOFU_CLI_CONFIG_FILE: /tf/.terraformrc
+    depends_on:
+      infra-kafka:
+        condition: service_healthy
+    working_dir: /tf
+    volumes:
+      - ./deploy/tofu/terraform/cluster:/tf
+    command: [ "tofu", "apply", "-auto-approve" ]
+  infra-kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: infra-kafka:9092
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
+      LOGGING_LEVEL_ROOT: WARN
+      LOGGING_LEVEL_COM_PROJECT: ERROR
+      LOGGING_LEVEL_ORG_APACHE_KAFKA: WARN
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: ERROR
+    depends_on:
+      infra-kafka:
+        condition: service_healthy
+    command:
+      [ "java" , "-jar", "./kafka-ui-api.jar" ]
+  #  services
   hub_submitter:
     depends_on:
-      - infra-postgres
+      infra-tofu:
+        condition: service_completed_successfully
+      infra-postgres:
+        condition: service_healthy
     build:
       context: internal
-      dockerfile: services/hub_submitter/Dockerfile
+      dockerfile: services/hub_submitter_service/Dockerfile
     ports:
       - "8056:8056"
     environment:
@@ -25,3 +80,4 @@ services:
       DATABASE_SCHEMA: "${HUBSUBMITTER_DATABASE_SCHEMA}"
 volumes:
   postgres_data:
+  kafka_data:

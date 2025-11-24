@@ -16,7 +16,7 @@ type ProducerConfig struct {
 }
 
 type ConsumerConfig struct {
-	Topic Topic
+	Topic Topic `mapstructure:"topic"`
 }
 
 type ConsumeConfig struct {

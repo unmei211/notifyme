@@ -37,7 +37,7 @@ func (i *inbox) regPutHandler(handler PutHandler) {
 	i.putHandlers = append(i.putHandlers, handler)
 }
 
-func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers ...PutHandler) Inbox {
+func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers []PutHandler) Inbox {
 	inbx := &inbox{
 		log: log,
 	}
