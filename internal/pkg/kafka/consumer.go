@@ -2,46 +2,59 @@ package kafka
 
 import (
 	"context"
-	"time"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/unmei211/notifyme/internal/pkg/messaging"
 	"go.uber.org/zap"
 )
 
 type kafkaConsumer struct {
-	reader *kafka.Reader
+	logger  *zap.SugaredLogger
+	config  *ConsumerConfig
+	handler ConsumeHandler
+	reader  *kafka.Reader
+}
+
+type Consumer interface {
+	Consume(msg *messaging.Message)
+}
+
+type ConsumeHandler func(msg *messaging.Message, topic Topic)
+
+func (c *kafkaConsumer) Consume(msg *messaging.Message) {
+
 }
 
 type ConsumerManager struct {
 	context   context.Context
 	logger    *zap.SugaredLogger
-	producers map[Topic]Producer
+	consumers map[Topic]Consumer
 }
 
-func InitConsumers(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (manager *ProducerManager) {
+func InitConsumers(cfg *Config, log *zap.SugaredLogger, handler ConsumeHandler, ctx context.Context) (manager *ConsumerManager) {
 	kafkaLogger := newKafkaLogger(log)
 
-	manager = &ProducerManager{
-		producers: map[Topic]Producer{},
+	manager = &ConsumerManager{
+		consumers: map[Topic]Consumer{},
 		logger:    log,
 		context:   ctx,
 	}
-	for i := range cfg.Producers {
-		producerCfg := cfg.Producers[i]
-		producer := kafkaProducer{
-			writer: &kafka.Writer{
-				Addr:         kafka.TCP(cfg.Addr...),
-				Topic:        string(producerCfg.Topic),
-				Balancer:     &kafka.RoundRobin{},
-				MaxAttempts:  100,
-				BatchSize:    producerCfg.BatchSize,
-				BatchTimeout: time.Duration(producerCfg.BatchTimeout) * time.Millisecond,
-				Async:        producerCfg.Async,
-				Logger:       kafkaLogger,
-				ErrorLogger:  kafkaLogger,
-			},
+
+	consumerConfigs := cfg.Consume.Consumers
+	for _, consumerConfig := range consumerConfigs {
+
+		readerConf := kafka.ReaderConfig{
+			Brokers: cfg.Addr,
+			Topic:   string(consumerConfig.Topic),
+			Logger:  kafkaLogger,
 		}
-		manager.producers[producerCfg.Topic] = &producer
+		consumer := kafkaConsumer{
+			logger:  log,
+			config:  &consumerConfig,
+			handler: handler,
+			reader:  kafka.NewReader(readerConf),
+		}
+		manager.consumers[consumerConfig.Topic] = &consumer
 	}
 
 	return

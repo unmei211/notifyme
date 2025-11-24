@@ -15,20 +15,12 @@ type ProducerConfig struct {
 	BatchTimeout int   `mapstructure:"batchTimeout"`
 }
 
-type WorkerConfig struct {
-	Workers int         `mapstructure:"workers"`
-	Group   WorkerGroup `mapstructure:"group"`
-}
-
-type WorkerGroup string
-
 type ConsumerConfig struct {
 	Topic Topic
 }
 
 type ConsumeConfig struct {
-	Workers   map[WorkerGroup]WorkerConfig `mapstructure:"workers"`
-	Consumers []ConsumerConfig             `mapstructure:"consumers"`
+	Consumers []ConsumerConfig `mapstructure:"consumers"`
 }
 
 type Config struct {
@@ -49,8 +41,9 @@ func newKafkaLogger(logger *zap.SugaredLogger) *kafkaLogger {
 	return &kafkaLogger{logger: logger}
 }
 
-func Init(cfg *Config, zap *zap.SugaredLogger, ctx context.Context) (producer *ProducerManager) {
+func Init(cfg *Config, zap *zap.SugaredLogger, ctx context.Context, consumeHandler ConsumeHandler) (producer *ProducerManager, manager *ConsumerManager) {
 	producerManager := InitProducers(cfg, zap, ctx)
+	consumerManager := InitConsumers(cfg, zap, consumeHandler, ctx)
 
-	return producerManager
+	return producerManager, consumerManager
 }

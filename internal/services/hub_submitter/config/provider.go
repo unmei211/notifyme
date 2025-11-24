@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/unmei211/notifyme/internal/pkg/logger"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
+	"go.uber.org/zap"
 )
 
 func ProvideLoggerConfig(
@@ -12,7 +13,7 @@ func ProvideLoggerConfig(
 }
 
 func ProvideDatabaseConfig(
-	config *Config) *orm.DatabaseConfig {
-	logger.Log.Debugf("Provide database config")
+	config *Config, log *zap.SugaredLogger) *orm.DatabaseConfig {
+	log.Debugf("Provide database config")
 	return config.Database
 }

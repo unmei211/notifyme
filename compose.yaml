@@ -18,5 +18,10 @@ services:
       dockerfile: services/hub_submitter/Dockerfile
     ports:
       - "8056:8056"
+    environment:
+      DATABASE_PASSWORD: "${HUBSUBMITTER_DATABASE_PASSWORD}"
+      DATABASE_USER: "${HUBSUBMITTER_DATABASE_USER}"
+      DATABASE_URL: "${HUBSUBMITTER_DATABASE_URL}"
+      DATABASE_SCHEMA: "${HUBSUBMITTER_DATABASE_SCHEMA}"
 volumes:
   postgres_data:

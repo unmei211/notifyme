@@ -2,12 +2,16 @@ package orm
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/golang-migrate/migrate"
-	"github.com/unmei211/notifyme/internal/pkg/logger"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	gormpostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	_ "github.com/golang-migrate/migrate/database/postgres"
+	_ "github.com/golang-migrate/migrate/source/file"
 )
 
 type DatabaseConfig struct {
@@ -51,19 +55,34 @@ func InitGorm(cfg *DatabaseConfig, log *zap.SugaredLogger) (*Gorm, error) {
 	}, nil
 }
 
-func Migrate(cfg *DatabaseConfig) error {
+func Migrate(cfg *DatabaseConfig, log *zap.SugaredLogger) error {
+	migrationPath, err := filepath.Abs("./migrations")
+
+	if err != nil {
+		log.Errorf("Failed get absolute path for migrations")
+		return err
+	}
+
+	log.Infof("Start init migrations. Migratios path: {%s}", migrationPath)
 	m, err := migrate.New(
-		"file://./migrations",
+		"file://"+migrationPath,
 		buildConnectionString(cfg),
 	)
 	if err != nil {
-		logger.Log.Errorf("Failed to initialize migrator")
+		log.Errorf("Failed to initialize migrator, err: {%+v}", err)
 		return err
 	}
 	err = m.Up()
 	if err != nil {
-		logger.Log.Errorf("Failed to process migrations")
-		return err
+		if errors.Is(err, migrate.ErrNoChange) {
+			log.Info("No migrations to apply, database is up to date")
+		} else {
+			log.Errorf("Migration failed, err: %+v", err)
+			return err
+		}
+	} else {
+		log.Info("Migrations applied successfully")
 	}
+
 	return nil
 }

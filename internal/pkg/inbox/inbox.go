@@ -7,24 +7,24 @@ import (
 )
 
 type Inbox interface {
-	Put(msg *messaging.Message) error
+	Put(msg *messaging.Message, topic string) error
 
 	regPutHandler(handler PutHandler)
 }
 
-type PutHandler func(msg *messaging.Message) error
+type PutHandler func(msg *messaging.Message, topic string) error
 
 type inbox struct {
 	log         *zap.SugaredLogger
 	putHandlers []PutHandler
 }
 
-func (i *inbox) Put(msg *messaging.Message) error {
+func (i *inbox) Put(msg *messaging.Message, topic string) error {
 	log.Debugf("Try put message {%s} in inbox", msg.MessageId)
 	var err error = nil
 
 	for _, handler := range i.putHandlers {
-		err = handler(msg)
+		err = handler(msg, topic)
 		if err != nil {
 			log.Errorf("Can't handle message {%s} in inbox. Error: {%+v}", msg.MessageId, err)
 			return err
@@ -37,14 +37,20 @@ func (i *inbox) regPutHandler(handler PutHandler) {
 	i.putHandlers = append(i.putHandlers, handler)
 }
 
-func InitInbox(cfg *Config, log *zap.SugaredLogger) Inbox {
-	return &inbox{
+func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers ...PutHandler) Inbox {
+	inbx := &inbox{
 		log: log,
 	}
-}
-
-func RegisterPutHandlers(inbx Inbox, handlers ...PutHandler) {
 	for _, handler := range handlers {
 		inbx.regPutHandler(handler)
 	}
+
+	return inbx
 }
+
+//
+//func RegisterPutHandlers(inbx Inbox, handlers ...PutHandler) {
+//	for _, handler := range handlers {
+//		inbx.regPutHandler(handler)
+//	}
+//}
