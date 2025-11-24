@@ -7,6 +7,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
+	"github.com/unmei211/notifyme/internal/pkg/messaging"
 	"go.uber.org/zap"
 )
 
@@ -14,7 +15,7 @@ type kafkaProducer struct {
 	writer *kafka.Writer
 }
 
-func (p *kafkaProducer) Produce(ctx context.Context, message *Message, logger *zap.SugaredLogger) error {
+func (p *kafkaProducer) Produce(ctx context.Context, message *messaging.Message, logger *zap.SugaredLogger) error {
 	raw, err := sonic.Marshal(message)
 
 	if err != nil {
@@ -34,7 +35,7 @@ func (p *kafkaProducer) Produce(ctx context.Context, message *Message, logger *z
 }
 
 type Producer interface {
-	Produce(ctx context.Context, message *Message, logger *zap.SugaredLogger) error
+	Produce(ctx context.Context, message *messaging.Message, logger *zap.SugaredLogger) error
 }
 
 type ProducerManager struct {
@@ -43,7 +44,7 @@ type ProducerManager struct {
 	producers map[Topic]Producer
 }
 
-func (m *ProducerManager) Send(message *Message, topic Topic) error {
+func (m *ProducerManager) Send(message *messaging.Message, topic Topic) error {
 	producer, exists := m.producers[topic]
 	if !exists {
 		m.logger.Errorf("Not found topic {%s}", topic)

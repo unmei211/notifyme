@@ -1,0 +1,13 @@
+services:
+  infra-postgres:
+    ports:
+      - "5432:5432"
+  hub_submitter:
+    build:
+      context: internal
+      dockerfile: services/hub_submitter/DockerfileDev
+    ports:
+      - "8056:8056"
+      - "40000:40000"
+volumes:
+  postgres_data:

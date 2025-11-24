@@ -1,22 +1,31 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.25-alpine AS build
 
-COPY ./internal/pkg/go.mod ./internal/pkg/go.sum /src/pkg/
-COPY ./internal/services/hub_submitter/go.mod ./internal/services/hub_submitter/go.sum /src/services/hub_submitter/
+WORKDIR /app
 
-WORKDIR /src/services/hub_submitter
+ARG SERVICE_NAME=hub_submitter
+ARG SERVICE_HOST_PATH=./services/${SERVICE_NAME}/
+ARG SERVICE_CONTAINER_PATH=src/${SERVICE_NAME}/
+ARG PKG_HOST_PATH=./pkg/
+ARG PKG_CONTAINER_PATH=pkg/
+
+COPY ${PKG_HOST_PATH}go.mod ${PKG_HOST_PATH}go.sum ${PKG_CONTAINER_PATH}
+COPY ${SERVICE_HOST_PATH}go.mod ${SERVICE_HOST_PATH}go.sum ${SERVICE_CONTAINER_PATH}
+
+WORKDIR /app/${SERVICE_CONTAINER_PATH}
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
 
-WORKDIR /
+WORKDIR /app
 
-COPY ./internal/pkg /src/pkg/
-COPY ./internal/services/hub_submitter /src/services/hub_submitter/
+COPY ${PKG_HOST_PATH} ${PKG_CONTAINER_PATH}
+COPY ${SERVICE_HOST_PATH} ${SERVICE_CONTAINER_PATH}
 
-WORKDIR /src/services/hub_submitter/cmd/
+WORKDIR ${SERVICE_CONTAINER_PATH}cmd/
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    go build -o /opt/hub_submitter/app .
+    go build -o /opt/${SERVICE_NAME}/app .
 
-CMD ["app"]
+WORKDIR /opt/${SERVICE_NAME}
+CMD ["./app"]
 

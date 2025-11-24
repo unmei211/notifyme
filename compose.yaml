@@ -1,0 +1,22 @@
+services:
+  infra-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=en"
+      POSTGRES_DB: "${INFRA_POSTGRES_DB}"
+      POSTGRES_USER: "${INFRA_POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${INFRA_POSTGRES_PASSWORD}"
+    shm_size: 128mb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
+  hub_submitter:
+    depends_on:
+      - infra-postgres
+    build:
+      context: internal
+      dockerfile: services/hub_submitter/Dockerfile
+    ports:
+      - "8056:8056"
+volumes:
+  postgres_data:

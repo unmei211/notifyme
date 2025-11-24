@@ -1,4 +1,5 @@
 PROTO_DIR := internal/pkg/proto
+.PHONY: clean start soft-clean start-follow
 
 .PHONY: proto-gen
 proto-gen:
@@ -14,3 +15,12 @@ proto-gen:
 	  --go-grpc_out=. \
 	  --go-grpc_opt=paths=source_relative \
 	  $$PROTO_FILES
+
+start:
+	DOCKER_BUILDKIT=1 docker compose -f compose.yaml -f compose.override.yaml up -d --build
+start-follow:
+	DOCKER_BUILDKIT=1 docker compose -f compose.yaml -f compose.override.yaml up --build
+clean:
+	docker compose -f compose.yaml -f compose.override.yaml down -v
+soft-clean:
+	docker compose -f compose.yaml -f compose.override.yaml down

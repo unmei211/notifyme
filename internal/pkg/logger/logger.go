@@ -4,27 +4,27 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	log "go.uber.org/zap"
+	zap "go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type ConfigurerGetter func(cfg *Config) log.Option
+type ConfigurerGetter func(cfg *Config) zap.Option
 
 type LogConfigurer struct {
 	getters []ConfigurerGetter
 }
 
-func (l *LogConfigurer) apply(cfg *Config) []log.Option {
-	var options []log.Option
+func (l *LogConfigurer) apply(cfg *Config) []zap.Option {
+	var options []zap.Option
 	for i := range l.getters {
 		options = append(options, l.getters[i](cfg))
 	}
 	return options
 }
 
-type encoderModifier func(cfg *log.Config) *log.Config
+type encoderModifier func(cfg *zap.Config) *zap.Config
 
-func modifyJson(cfg *log.Config) *log.Config {
+func modifyJson(cfg *zap.Config) *zap.Config {
 	cfg.Encoding = "json"
 	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -32,7 +32,7 @@ func modifyJson(cfg *log.Config) *log.Config {
 	cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 	return cfg
 }
-func modifyConsole(cfg *log.Config) *log.Config {
+func modifyConsole(cfg *zap.Config) *zap.Config {
 	cfg.Encoding = "console"
 
 	cfg.EncoderConfig = zapcore.EncoderConfig{
@@ -82,11 +82,13 @@ func modifyConsole(cfg *log.Config) *log.Config {
 	return cfg
 }
 
+var Log *zap.SugaredLogger
+
 func InitLogger(
 	cfg *Config,
-) (*log.SugaredLogger, error) {
-	configModeMap := map[string]log.Config{
-		"production": log.NewProductionConfig(),
+) (*zap.SugaredLogger, error) {
+	configModeMap := map[string]zap.Config{
+		"production": zap.NewProductionConfig(),
 	}
 
 	levelsMap := map[string]zapcore.Level{
@@ -100,14 +102,15 @@ func InitLogger(
 	}
 
 	zapConf := configModeMap["production"]
-	zapConf.Level = log.NewAtomicLevelAt(levelsMap[cfg.LogLevel])
+	zapConf.Level = zap.NewAtomicLevelAt(levelsMap[cfg.LogLevel])
 	formatMap[cfg.LogFormat](&zapConf)
 
 	build, err := zapConf.Build()
 	if err != nil {
 		return nil, errors.New("can't create config")
 	}
-	return build.Sugar(), nil
+	Log = build.Sugar()
+	return Log, nil
 }
 
 type Config struct {

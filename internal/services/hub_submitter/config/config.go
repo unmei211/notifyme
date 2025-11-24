@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	httpserver "github.com/unmei211/notifyme/internal/pkg/http_server/server"
 	"github.com/unmei211/notifyme/internal/pkg/logger"
+	"github.com/unmei211/notifyme/internal/pkg/orm"
 )
 
 var configPath string
@@ -21,9 +22,10 @@ func init() {
 }
 
 type Config struct {
-	ServiceName string             `mapstructure:"serviceName"`
-	HttpServer  *httpserver.Config `mapstructure:"httpServer"`
-	Logger      *logger.Config     `mapstructure:"logger"`
+	ServiceName string              `mapstructure:"serviceName"`
+	HttpServer  *httpserver.Config  `mapstructure:"httpServer"`
+	Logger      *logger.Config      `mapstructure:"logger"`
+	Database    *orm.DatabaseConfig `mapstructure:"database"`
 }
 
 func InitConfig() (*Config, error) {
@@ -51,6 +53,9 @@ func InitConfig() (*Config, error) {
 	viper.SetConfigName(fmt.Sprintf("config.%s", env))
 	viper.AddConfigPath(configPath)
 	viper.SetConfigType("json")
+	replacer := strings.NewReplacer(".", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, errors.Wrap(err, "viper.ReadInConfig")

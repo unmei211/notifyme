@@ -1,0 +1,43 @@
+FROM golang:1.25-alpine AS build
+
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+WORKDIR /app
+
+#ARG SERVICE_NAME=hub_submitter
+#ARG SERVICE_HOST_PATH=./services/${SERVICE_NAME}/
+#ARG SERVICE_CONTAINER_PATH=src/${SERVICE_NAME}/
+#ARG PKG_HOST_PATH=./pkg/
+#ARG PKG_CONTAINER_PATH=pkg/
+#
+#COPY ${PKG_HOST_PATH}go.mod ${PKG_HOST_PATH}go.sum ${PKG_CONTAINER_PATH}
+#COPY ${SERVICE_HOST_PATH}go.mod ${SERVICE_HOST_PATH}go.sum ${SERVICE_CONTAINER_PATH}
+
+
+COPY pkg/go.mod pkg/go.sum ./
+COPY services/hub_submitter/go.mod services/hub_submitter/go.sum ./service/
+
+
+WORKDIR /app/service
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+#WORKDIR /app
+#
+#COPY ${PKG_HOST_PATH} ${PKG_CONTAINER_PATH}
+#COPY ${SERVICE_HOST_PATH} ${SERVICE_CONTAINER_PATH}
+#
+#WORKDIR ${SERVICE_CONTAINER_PATH}cmd/
+#
+#RUN --mount=type=cache,target=/root/.cache/go-build \
+#    go build -gcflags="all=-N -l" -o /opt/${SERVICE_NAME}/app .
+#
+#RUN mv ../migrations /opt/${SERVICE_NAME}/migrations
+#
+#WORKDIR /opt/${SERVICE_NAME}
+#
+#EXPOSE 40000
+#EXPOSE 8056
+#CMD ["dlv", "exec", "./app", "--headless", "--listen=:40000", "--api-version=2", "--accept-multiclient"]
+

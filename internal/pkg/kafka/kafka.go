@@ -15,9 +15,26 @@ type ProducerConfig struct {
 	BatchTimeout int   `mapstructure:"batchTimeout"`
 }
 
+type WorkerConfig struct {
+	Workers int         `mapstructure:"workers"`
+	Group   WorkerGroup `mapstructure:"group"`
+}
+
+type WorkerGroup string
+
+type ConsumerConfig struct {
+	Topic Topic
+}
+
+type ConsumeConfig struct {
+	Workers   map[WorkerGroup]WorkerConfig `mapstructure:"workers"`
+	Consumers []ConsumerConfig             `mapstructure:"consumers"`
+}
+
 type Config struct {
 	Addr      []string         `mapstructure:"addr"`
 	Producers []ProducerConfig `mapstructure:"producers"`
+	Consume   ConsumeConfig    `mapstructure:"consume"`
 }
 
 type kafkaLogger struct {

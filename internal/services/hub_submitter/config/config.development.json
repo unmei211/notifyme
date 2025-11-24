@@ -10,5 +10,12 @@
   "logger": {
     "level": "debug",
     "format": "console"
+  },
+  "database": {
+    "password": "postgres",
+    "user": "postgres",
+    "url": "postgres:5432",
+    "schema": "hub_submitter",
+    "db": "postgres"
   }
 }
