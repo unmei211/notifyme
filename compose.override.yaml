@@ -3,7 +3,7 @@ services:
     ports:
       - "5432:5432"
   infra-kafka:
-    image: bitnami/kafka:3.6.0
+    image: apache/kafka
     ports:
       - "9092:9092"
   infra-tofu:
@@ -16,6 +16,10 @@ services:
     build:
       context: internal
       dockerfile: services/hub_submitter_service/DockerfileDev
+    volumes:
+      #      for debug
+      - ./internal/services/hub_submitter_service:/app/src/service:cached
+      - ./internal/pkg:/app/pkg:cached
     ports:
       - "8056:8056"
       - "40000:40000"

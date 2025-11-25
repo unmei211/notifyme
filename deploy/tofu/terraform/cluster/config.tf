@@ -16,8 +16,8 @@ provider "kafka" {
   tls_enabled = false
 }
 
-resource "kafka_topic" "payment_create-command" {
-  name = "payment.create-command"
+resource "kafka_topic" "notification-sender_sent-event" {
+  name = "notification-sender.sent-event"
   partitions         = 1
   replication_factor = 1
   config = {

@@ -24,3 +24,6 @@ clean:
 	docker compose -f compose.yaml -f compose.override.yaml down -v
 soft-clean:
 	docker compose -f compose.yaml -f compose.override.yaml down
+
+reload-services:
+	docker compose up -d hub_submitter --build

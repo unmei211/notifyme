@@ -1,4 +1,4 @@
-FROM golang:1.25 AS build
+FROM golang:1.25-alpine AS build
 
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
@@ -22,9 +22,11 @@ WORKDIR /app/src/service/cmd/
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -gcflags="all=-N -l" -o /opt/service/app .
+    go build -gcflags="all=-N -l" -trimpath -o /opt/service/app .
 
 RUN mv ../migrations /opt/service/migrations
+
+COPY services/hub_submitter_service/resources /opt/service/resources/
 
 WORKDIR /opt/service
 

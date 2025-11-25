@@ -1,11 +1,8 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -16,12 +13,6 @@ import (
 	"github.com/unmei211/notifyme/internal/pkg/logger"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 )
-
-var configPath string
-
-func init() {
-	flag.StringVar(&configPath, "config", "", "products write microservice config path")
-}
 
 type Config struct {
 	ServiceName string              `mapstructure:"serviceName"`
@@ -38,25 +29,13 @@ func InitConfig() (*Config, error) {
 		env = "development"
 	}
 
-	if configPath == "" {
-		configPathFromEnv := os.Getenv("CONFIG_PATH")
-		if configPathFromEnv != "" {
-			configPath = configPathFromEnv
-		} else {
-			d, err := dirname()
-			if err != nil {
-				return nil, err
-			}
-
-			configPath = d
-		}
-	}
+	configPath := os.Getenv("CONFIG_PATH")
 
 	cfg := &Config{}
 
 	viper.SetConfigName(fmt.Sprintf("config.%s", env))
 	viper.AddConfigPath(configPath)
-	viper.SetConfigType("json")
+	viper.SetConfigType("yaml")
 	replacer := strings.NewReplacer(".", "_")
 	viper.SetEnvKeyReplacer(replacer)
 	viper.AutomaticEnv()
@@ -74,20 +53,4 @@ func InitConfig() (*Config, error) {
 
 func GetMicroserviceName(serviceName string) string {
 	return fmt.Sprintf("%s", strings.ToUpper(serviceName))
-}
-
-func filename() (string, error) {
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", errors.New("unable to get the current filename")
-	}
-	return filename, nil
-}
-
-func dirname() (string, error) {
-	filename, err := filename()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Dir(filename), nil
 }

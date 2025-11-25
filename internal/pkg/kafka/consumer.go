@@ -28,20 +28,20 @@ func (c *kafkaConsumer) Consume(msg *messaging.Message) {
 type ConsumerManager struct {
 	context   context.Context
 	logger    *zap.SugaredLogger
-	consumers map[Topic]Consumer
+	consumers map[RoutingKey]Consumer
 }
 
 func InitConsumers(cfg *Config, log *zap.SugaredLogger, handler ConsumeHandler, ctx context.Context) (manager *ConsumerManager) {
 	kafkaLogger := newKafkaLogger(log)
 
 	manager = &ConsumerManager{
-		consumers: map[Topic]Consumer{},
+		consumers: map[RoutingKey]Consumer{},
 		logger:    log,
 		context:   ctx,
 	}
 
 	consumerConfigs := cfg.Consume.Consumers
-	for _, consumerConfig := range consumerConfigs {
+	for key, consumerConfig := range consumerConfigs {
 
 		readerConf := kafka.ReaderConfig{
 			Brokers: cfg.Addr,
@@ -54,7 +54,7 @@ func InitConsumers(cfg *Config, log *zap.SugaredLogger, handler ConsumeHandler, 
 			handler: handler,
 			reader:  kafka.NewReader(readerConf),
 		}
-		manager.consumers[consumerConfig.Topic] = &consumer
+		manager.consumers[key] = &consumer
 	}
 
 	return

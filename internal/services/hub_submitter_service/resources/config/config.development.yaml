@@ -1,0 +1,37 @@
+serviceName: "${SERVICENAME}"
+
+httpServer:
+  port: "${HTTPSERVER_PORT}"
+  env: "${HTTPSERVER_ENV}"
+  basePath: "${HTTPSERVER_BASEPATH}"
+  timeout: "${HTTPSERVER_TIMEOUT}"
+  host: "${HTTPSERVER_HOST}"
+
+logger:
+  level: "debug"
+  format: "console"
+
+database:
+  password: "${DATABASE_PASSWORD}"
+  user: "${DATABASE_USER}"
+  url: "${DATABASE_URL}"
+  schema: "${DATABASE_SCHEMA}"
+  db: "postgres"
+
+kafka:
+  addr:
+    - "${KAFKA_ADDR}"
+  producers:
+    notificationSender_sentEvent:
+      topic: notification-sender.sent-event
+      async: false
+      batchSize: 10
+      batchTimeout: 100
+  consume:
+    consumers:
+      notificationSender_sentEvent:
+        topic: notification-sender.sent-event
+
+inbox:
+  put: { }
+  poll: { }

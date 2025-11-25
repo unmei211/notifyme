@@ -7,7 +7,7 @@ import (
 )
 
 type Topic string
-
+type RoutingKey string
 type ProducerConfig struct {
 	Topic        Topic `mapstructure:"topic"`
 	Async        bool  `mapstructure:"async"`
@@ -20,13 +20,13 @@ type ConsumerConfig struct {
 }
 
 type ConsumeConfig struct {
-	Consumers []ConsumerConfig `mapstructure:"consumers"`
+	Consumers map[RoutingKey]ConsumerConfig `mapstructure:"consumers"`
 }
 
 type Config struct {
-	Addr      []string         `mapstructure:"addr"`
-	Producers []ProducerConfig `mapstructure:"producers"`
-	Consume   ConsumeConfig    `mapstructure:"consume"`
+	Addr      []string                      `mapstructure:"addr"`
+	Producers map[RoutingKey]ProducerConfig `mapstructure:"producers"`
+	Consume   ConsumeConfig                 `mapstructure:"consume"`
 }
 
 type kafkaLogger struct {

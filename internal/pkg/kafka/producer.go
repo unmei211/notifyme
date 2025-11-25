@@ -41,14 +41,14 @@ type Producer interface {
 type ProducerManager struct {
 	context   context.Context
 	logger    *zap.SugaredLogger
-	producers map[Topic]Producer
+	producers map[RoutingKey]Producer
 }
 
-func (m *ProducerManager) Send(message *messaging.Message, topic Topic) error {
-	producer, exists := m.producers[topic]
+func (m *ProducerManager) Send(message *messaging.Message, routingKey RoutingKey) error {
+	producer, exists := m.producers[routingKey]
 	if !exists {
-		m.logger.Errorf("Not found topic {%s}", topic)
-		return errors.Errorf("Not found topic {%s}", topic)
+		m.logger.Errorf("Not found channel {%s}", routingKey)
+		return errors.Errorf("Not found channel {%s}", routingKey)
 	}
 
 	err := producer.Produce(m.context, message, m.logger)
@@ -65,16 +65,16 @@ func InitProducers(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (ma
 	kafkaLogger := newKafkaLogger(log)
 
 	manager = &ProducerManager{
-		producers: map[Topic]Producer{},
+		producers: map[RoutingKey]Producer{},
 		logger:    log,
 		context:   ctx,
 	}
-	for i := range cfg.Producers {
-		producerCfg := cfg.Producers[i]
+	for key, value := range cfg.Producers {
+		producerCfg := value
 		producer := kafkaProducer{
 			writer: &kafka.Writer{
 				Addr:         kafka.TCP(cfg.Addr...),
-				Topic:        string(producerCfg.Topic),
+				Topic:        string(value.Topic),
 				Balancer:     &kafka.RoundRobin{},
 				MaxAttempts:  100,
 				BatchSize:    producerCfg.BatchSize,
@@ -84,7 +84,7 @@ func InitProducers(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (ma
 				ErrorLogger:  kafkaLogger,
 			},
 		}
-		manager.producers[producerCfg.Topic] = &producer
+		manager.producers[key] = &producer
 	}
 
 	return

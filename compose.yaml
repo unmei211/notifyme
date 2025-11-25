@@ -17,19 +17,19 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./deploy/postgres/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
   infra-kafka:
-    image: bitnami/kafka:3.6.0
+    image: apache/kafka
     environment:
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka:9092
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9093
-      KAFKA_CFG_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9093
+      KAFKA_NODE_ID: 1
     volumes:
-      - kafka_data:/bitnami/kafka
+      - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: [ "CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      test: [ "CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
       interval: 5s
       timeout: 10s
       retries: 5
@@ -75,12 +75,16 @@ services:
     ports:
       - "8056:8056"
     environment:
+      # Hub_submitter
+      SERVICENAME: "${HUBSUBMITTER_SERVICE_NAME}"
+      CONFIG_PATH: "${HUBSUBMITTER_CONFIG_PATH}"
+      # Hub_submitter : DB
       DATABASE_PASSWORD: "${HUBSUBMITTER_DATABASE_PASSWORD}"
       DATABASE_USER: "${HUBSUBMITTER_DATABASE_USER}"
       DATABASE_URL: "${HUBSUBMITTER_DATABASE_URL}"
       DATABASE_SCHEMA: "${HUBSUBMITTER_DATABASE_SCHEMA}"
-      KAFKA_ADDR: "${HUBSUBMITTER_KAFKA_ADDR}"
-      SERVICENAME: "${HUBSUBMITTER_SERVICE_NAME}"
+      # Hub_submitter : Kafka
+      KAFKA_ADDR: "${HUBSUBMITTER_KAFKA_ADDR}"      # Hub_submitter : HTTP
       HTTPSERVER_ENV: "${ENV}"
       HTTPSERVER_PORT: "${HUBSUBMITTER_HTTP_PORT}"
       HTTPSERVER_BASEPATH: "${HUBSUBMITTER_HTTP_BASEPATH}"
