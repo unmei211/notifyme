@@ -39,6 +39,7 @@ services:
       context: deploy/tofu
     environment:
       TOFU_CLI_CONFIG_FILE: /tf/.terraformrc
+      TF_VAR_kafka_hosts: "${TOFU_KAFKA_HOSTS}"
     depends_on:
       infra-kafka:
         condition: service_healthy
@@ -78,6 +79,13 @@ services:
       DATABASE_USER: "${HUBSUBMITTER_DATABASE_USER}"
       DATABASE_URL: "${HUBSUBMITTER_DATABASE_URL}"
       DATABASE_SCHEMA: "${HUBSUBMITTER_DATABASE_SCHEMA}"
+      KAFKA_ADDR: "${HUBSUBMITTER_KAFKA_ADDR}"
+      SERVICENAME: "${HUBSUBMITTER_SERVICE_NAME}"
+      HTTPSERVER_ENV: "${ENV}"
+      HTTPSERVER_PORT: "${HUBSUBMITTER_HTTP_PORT}"
+      HTTPSERVER_BASEPATH: "${HUBSUBMITTER_HTTP_BASEPATH}"
+      HTTPSERVER_TIMEOUT: "${HUBSUBMITTER_HTTP_TIMEOUT}"
+      HTTPSERVER_HOST: "${HUBSUBMITTER_HTTP_HOST}"
 volumes:
   postgres_data:
   kafka_data:

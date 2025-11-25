@@ -1,26 +1,26 @@
 {
-  "serviceName": "hub_submitter",
+  "serviceName": "${SERVICENAME}",
   "httpServer": {
-    "port": 8056,
-    "env": "local",
-    "basePath": "api/rest",
-    "timeout": 15,
-    "host": "localhost"
+    "port": "${HTTPSERVER_PORT}",
+    "env": "${HTTPSERVER_ENV}",
+    "basePath": "${HTTPSERVER_BASEPATH}",
+    "timeout": "${HTTPSERVER_TIMEOUT}",
+    "host": "${HTTPSERVER_HOST}"
   },
   "logger": {
     "level": "debug",
     "format": "console"
   },
   "database": {
-    "password": "postgres",
-    "user": "postgres",
-    "url": "postgres:5432",
-    "schema": "hub_submitter",
+    "password": "${DATABASE_PASSWORD}",
+    "user": "${DATABASE_USER}",
+    "url": "${DATABASE_URL}",
+    "schema": "${DATABASE_SCHEMA}",
     "db": "postgres"
   },
   "kafka": {
     "addr": [
-      ""
+      "${KAFKA_ADDR}"
     ],
     "producers": [
       {

@@ -6,8 +6,12 @@ terraform {
   }
 }
 
+variable "kafka_hosts" {
+  type = string
+}
+
 provider "kafka" {
-  bootstrap_servers = ["infra-kafka:9092"]
+  bootstrap_servers = [var.kafka_hosts]
 
   tls_enabled = false
 }
