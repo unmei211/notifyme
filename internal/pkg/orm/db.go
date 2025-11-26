@@ -56,7 +56,7 @@ func InitGorm(cfg *DatabaseConfig, log *zap.SugaredLogger) (*Gorm, error) {
 }
 
 func Migrate(cfg *DatabaseConfig, log *zap.SugaredLogger) error {
-	migrationPath, err := filepath.Abs("./migrations")
+	migrationPath, err := filepath.Abs("/opt/service/resources/migrations")
 
 	if err != nil {
 		log.Errorf("Failed get absolute path for migrations")

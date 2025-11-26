@@ -37,13 +37,13 @@ func main() {
 				inbox.InitInbox,
 				inboxprovider.ConsumeHandlerInboxProvider,
 				// Messaging
-				//kafka.Init,
+				kafka.Init,
 				// Server
 				httpserver.NewHttpServer,
 			),
 			fx.Invoke(orm.Migrate),
 			fx.Invoke(server.RunServers),
-			fx.Invoke(kafka.Init),
+			fx.Invoke(kafka.LaunchConsumers),
 		),
 	).Run()
 }

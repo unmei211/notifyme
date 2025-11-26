@@ -18,3 +18,7 @@ type MessageInbox struct {
 	ProcessedAt time.Time
 	Payload     datatypes.JSON `gorm:"type:jsonb"`
 }
+
+func (e *MessageInbox) TableName() string {
+	return "inbox"
+}

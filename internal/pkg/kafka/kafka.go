@@ -20,6 +20,7 @@ type ConsumerConfig struct {
 }
 
 type ConsumeConfig struct {
+	GroupId   string                        `mapstructure:"groupId"`
 	Consumers map[RoutingKey]ConsumerConfig `mapstructure:"consumers"`
 }
 

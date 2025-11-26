@@ -24,8 +24,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go build -gcflags="all=-N -l" -trimpath -o /opt/service/app .
 
-RUN mv ../migrations /opt/service/migrations
-
 COPY services/hub_submitter_service/resources /opt/service/resources/
 
 WORKDIR /opt/service

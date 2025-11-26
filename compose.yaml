@@ -19,15 +19,63 @@ services:
   infra-kafka:
     image: apache/kafka
     environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_KRAFT_CLUSTER_ID: "${KAFKA_CLUSTER_ID}"
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9091,2@infra-kafka2:9091,3@infra-kafka3:9091
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9091
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9093
-      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      #      optimization
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx512M"
     volumes:
       - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  infra-kafka2:
+    image: apache/kafka
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_KRAFT_CLUSTER_ID: "${KAFKA_CLUSTER_ID}"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9091,2@infra-kafka2:9091,3@infra-kafka3:9091
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9091
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka2:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      #      optimization
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx512M"
+    volumes:
+      - kafka_data2:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  infra-kafka3:
+    image: apache/kafka
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_KRAFT_CLUSTER_ID: "${KAFKA_CLUSTER_ID}"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@infra-kafka:9091,2@infra-kafka2:9091,3@infra-kafka3:9091
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9091
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka3:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      #      optimization
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx512M"
+    volumes:
+      - kafka_data3:/var/lib/kafka/data
     healthcheck:
       test: [ "CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
       interval: 5s
@@ -42,6 +90,10 @@ services:
       TF_VAR_kafka_hosts: "${TOFU_KAFKA_HOSTS}"
     depends_on:
       infra-kafka:
+        condition: service_healthy
+      infra-kafka2:
+        condition: service_healthy
+      infra-kafka3:
         condition: service_healthy
     working_dir: /tf
     volumes:
@@ -85,6 +137,8 @@ services:
       DATABASE_SCHEMA: "${HUBSUBMITTER_DATABASE_SCHEMA}"
       # Hub_submitter : Kafka
       KAFKA_ADDR: "${HUBSUBMITTER_KAFKA_ADDR}"      # Hub_submitter : HTTP
+      KAFKA_CONSUME_GROUPID: "${HUBSUBMITTER_KAFKA_CONSUME_GROUPID}"
+      # Hub_submitter : HTTP
       HTTPSERVER_ENV: "${ENV}"
       HTTPSERVER_PORT: "${HUBSUBMITTER_HTTP_PORT}"
       HTTPSERVER_BASEPATH: "${HUBSUBMITTER_HTTP_BASEPATH}"
@@ -93,3 +147,6 @@ services:
 volumes:
   postgres_data:
   kafka_data:
+  kafka_data2:
+  kafka_data3:
+
