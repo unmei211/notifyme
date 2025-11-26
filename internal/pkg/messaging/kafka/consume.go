@@ -4,32 +4,43 @@ import (
 	"context"
 
 	"github.com/bytedance/sonic"
-	"github.com/labstack/gommon/log"
 	"github.com/segmentio/kafka-go"
 	"github.com/unmei211/notifyme/internal/pkg/messaging"
 	"github.com/unmei211/notifyme/internal/pkg/worker"
 	"go.uber.org/zap"
 )
 
+// Kafka Implementation IConsumer
 type kafkaConsumer struct {
 	logger     *zap.SugaredLogger
 	config     *ConsumerConfig
-	handler    ConsumeHandler
+	handler    messaging.ConsumeHandler
 	reader     *kafka.Reader
-	routingKey RoutingKey
+	routingKey messaging.RoutingKey
 	fallback   func(self *kafkaConsumer)
 }
 
-type Consumer interface {
-	Consume(ctx context.Context)
-	Start(ctx context.Context)
-	Stop()
-	Fallback()
+func (c *kafkaConsumer) Start(ctx context.Context) {
+	go func() {
+		for {
+			c.Consume(ctx)
+		}
+	}()
+}
+func (c *kafkaConsumer) Stop() {
+
 }
 
-type ConsumeHandler func(msg *messaging.Message, topic Topic) error
+func (c *kafkaConsumer) Fallback() {
+	err := c.reader.Close()
+	if err != nil {
+		return
+	}
 
-// TODO: Implement batch commit and zip messages
+	c.fallback(c)
+}
+
+// Consume TODO: Implement batch commit and zip messages
 func (c *kafkaConsumer) Consume(ctx context.Context) {
 	rawMsg, err := c.reader.FetchMessage(ctx)
 
@@ -52,7 +63,7 @@ func (c *kafkaConsumer) Consume(ctx context.Context) {
 		return
 	}
 
-	err = c.handler(&msg, c.config.Topic)
+	err = c.handler(&msg, c.routingKey)
 	if err != nil {
 		c.logger.Errorf("Can't handle message")
 		//TODO: may be infinity cycle. Implement dead_letters_queue
@@ -72,24 +83,15 @@ type ConsumerManager struct {
 	cfg       *Config
 	context   context.Context
 	logger    *zap.SugaredLogger
-	consumers map[RoutingKey]Consumer
+	consumers map[messaging.RoutingKey]messaging.IConsumer
 }
 
-func (c *kafkaConsumer) Fallback() {
-	err := c.reader.Close()
-	if err != nil {
-		return
-	}
-
-	c.fallback(c)
-}
-
-func InitConsumers(cfg *Config, log *zap.SugaredLogger, handler ConsumeHandler, ctx context.Context) (manager *ConsumerManager) {
+func initConsumerManager(cfg *Config, log *zap.SugaredLogger, handler messaging.ConsumeHandler, ctx context.Context) (manager messaging.IConsumerManager) {
 	kafkaLogger := newKafkaLogger(log)
 
-	manager = &ConsumerManager{
+	mng := &ConsumerManager{
 		cfg:       cfg,
-		consumers: map[RoutingKey]Consumer{},
+		consumers: map[messaging.RoutingKey]messaging.IConsumer{},
 		logger:    log,
 		context:   ctx,
 	}
@@ -109,10 +111,10 @@ func InitConsumers(cfg *Config, log *zap.SugaredLogger, handler ConsumeHandler, 
 			},
 		}
 
-		manager.consumers[key] = &consumer
+		mng.consumers[key] = &consumer
 	}
 
-	return
+	return mng
 }
 
 func createReader(cfg *Config, consumerConfig *ConsumerConfig, kafkaLogger *kafkaLogger) *kafka.Reader {
@@ -125,27 +127,20 @@ func createReader(cfg *Config, consumerConfig *ConsumerConfig, kafkaLogger *kafk
 	return kafka.NewReader(readerConf)
 }
 
-func (c *kafkaConsumer) Start(ctx context.Context) {
-	go func() {
-		for {
-			c.Consume(ctx)
-		}
-	}()
-}
-func (c *kafkaConsumer) Stop() {
-
-}
-
-func LaunchConsumers(consumerManager *ConsumerManager, ctx context.Context) {
-	log.Infof("Launch consumers")
-	log.Debugf("Consumers count: %d", len(consumerManager.consumers))
+func (m *ConsumerManager) Launch(ctx context.Context) {
+	m.logger.Infof("Launch consumers")
+	m.logger.Debugf("Consumers count: %d", len(m.consumers))
 	var workers []worker.IWorker
-	for key, consumer := range consumerManager.consumers {
-		log.Debugf("Add consumer for RoutingKey: %s", key)
+	for key, consumer := range m.consumers {
+		m.logger.Debugf("Add consumer for RoutingKey: %s", key)
 		workers = append(workers, consumer)
 	}
 
 	runner := worker.NewRunner(workers...)
 
 	runner.Launch(ctx)
+}
+
+func LaunchConsumers(consumerManager messaging.IConsumerManager, ctx context.Context) {
+	consumerManager.Launch(ctx)
 }

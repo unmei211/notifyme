@@ -13,7 +13,7 @@ type Repository interface {
 }
 type MessageInbox struct {
 	MessageId   uuid.UUID `gorm:"primaryKey"`
-	Topic       string
+	RoutingKey  string
 	ReceivedAt  time.Time
 	ProcessedAt time.Time
 	Payload     datatypes.JSON `gorm:"type:jsonb"`

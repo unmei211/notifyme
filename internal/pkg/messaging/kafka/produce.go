@@ -7,7 +7,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
-	"github.com/unmei211/notifyme/internal/pkg/messaging"
+	msg "github.com/unmei211/notifyme/internal/pkg/messaging"
 	"go.uber.org/zap"
 )
 
@@ -15,7 +15,7 @@ type kafkaProducer struct {
 	writer *kafka.Writer
 }
 
-func (p *kafkaProducer) Produce(ctx context.Context, message *messaging.Message, logger *zap.SugaredLogger) error {
+func (p *kafkaProducer) Produce(ctx context.Context, message *msg.Message, logger *zap.SugaredLogger) error {
 	raw, err := sonic.Marshal(message)
 
 	if err != nil {
@@ -34,17 +34,13 @@ func (p *kafkaProducer) Produce(ctx context.Context, message *messaging.Message,
 	return nil
 }
 
-type Producer interface {
-	Produce(ctx context.Context, message *messaging.Message, logger *zap.SugaredLogger) error
-}
-
 type ProducerManager struct {
 	context   context.Context
 	logger    *zap.SugaredLogger
-	producers map[RoutingKey]Producer
+	producers map[msg.RoutingKey]msg.IProducer
 }
 
-func (m *ProducerManager) Send(message *messaging.Message, routingKey RoutingKey) error {
+func (m *ProducerManager) Send(message *msg.Message, routingKey msg.RoutingKey) error {
 	producer, exists := m.producers[routingKey]
 	if !exists {
 		m.logger.Errorf("Not found channel {%s}", routingKey)
@@ -61,11 +57,11 @@ func (m *ProducerManager) Send(message *messaging.Message, routingKey RoutingKey
 	return nil
 }
 
-func InitProducers(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (manager *ProducerManager) {
+func initProducerManager(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (manager msg.IProducerManager) {
 	kafkaLogger := newKafkaLogger(log)
 
-	manager = &ProducerManager{
-		producers: map[RoutingKey]Producer{},
+	mng := &ProducerManager{
+		producers: map[msg.RoutingKey]msg.IProducer{},
 		logger:    log,
 		context:   ctx,
 	}
@@ -84,8 +80,8 @@ func InitProducers(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (ma
 				ErrorLogger:  kafkaLogger,
 			},
 		}
-		manager.producers[key] = &producer
+		mng.producers[key] = &producer
 	}
 
-	return
+	return mng
 }

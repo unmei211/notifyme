@@ -6,12 +6,13 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type MessageType string
-
 const (
 	MessageCommand MessageType = "command"
 	MessageEvent   MessageType = "event"
 )
+
+type MessageType string
+type RoutingKey string
 
 type Message struct {
 	MessageId     uuid.UUID

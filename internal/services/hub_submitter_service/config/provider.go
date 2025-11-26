@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/unmei211/notifyme/internal/pkg/inbox"
-	"github.com/unmei211/notifyme/internal/pkg/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/logger"
+	"github.com/unmei211/notifyme/internal/pkg/messaging/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 )
 

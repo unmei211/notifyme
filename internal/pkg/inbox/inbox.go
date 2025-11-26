@@ -2,29 +2,29 @@ package inbox
 
 import (
 	"github.com/labstack/gommon/log"
-	"github.com/unmei211/notifyme/internal/pkg/messaging"
+	msg "github.com/unmei211/notifyme/internal/pkg/messaging"
 	"go.uber.org/zap"
 )
 
+type PutHandler func(msg *msg.Message, routingKey msg.RoutingKey) error
+
 type Inbox interface {
-	Put(msg *messaging.Message, topic string) error
+	Put(msg *msg.Message, routingKey msg.RoutingKey) error
 
 	regPutHandler(handler PutHandler)
 }
 
-type PutHandler func(msg *messaging.Message, topic string) error
-
-type inbox struct {
+type SimpleInbox struct {
 	log         *zap.SugaredLogger
 	putHandlers []PutHandler
 }
 
-func (i *inbox) Put(msg *messaging.Message, topic string) error {
+func (i *SimpleInbox) Put(msg *msg.Message, routingKey msg.RoutingKey) error {
 	log.Debugf("Try put message {%s} in inbox", msg.MessageId)
 	var err error = nil
 
 	for _, handler := range i.putHandlers {
-		err = handler(msg, topic)
+		err = handler(msg, routingKey)
 		if err != nil {
 			log.Errorf("Can't handle message {%s} in inbox. Error: {%+v}", msg.MessageId, err)
 			return err
@@ -33,12 +33,12 @@ func (i *inbox) Put(msg *messaging.Message, topic string) error {
 
 	return nil
 }
-func (i *inbox) regPutHandler(handler PutHandler) {
+func (i *SimpleInbox) regPutHandler(handler PutHandler) {
 	i.putHandlers = append(i.putHandlers, handler)
 }
 
 func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers []PutHandler) Inbox {
-	inbx := &inbox{
+	inbx := &SimpleInbox{
 		log: log,
 	}
 	for _, handler := range handlers {
@@ -47,10 +47,3 @@ func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers []PutHandler) Inbox
 
 	return inbx
 }
-
-//
-//func RegisterPutHandlers(inbx Inbox, handlers ...PutHandler) {
-//	for _, handler := range handlers {
-//		inbx.regPutHandler(handler)
-//	}
-//}

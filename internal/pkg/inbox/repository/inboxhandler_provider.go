@@ -17,7 +17,7 @@ func PutHandlerInboxProvider(
 ) []inbox.PutHandler {
 	var handlers []inbox.PutHandler
 
-	handlers = append(handlers, func(msg *messaging.Message, topic string) error {
+	handlers = append(handlers, func(msg *messaging.Message, routingKey messaging.RoutingKey) error {
 		exists, err := inboxRepository.ExistsByMessageId(msg.MessageId)
 		if err != nil {
 			log.Errorf("Failed check exists message: {%s} in inbox", msg.MessageId)
@@ -40,7 +40,7 @@ func PutHandlerInboxProvider(
 		_, err = inboxRepository.Add(
 			&MessageInbox{
 				MessageId:  msg.MessageId,
-				Topic:      topic,
+				RoutingKey: string(routingKey),
 				ReceivedAt: time.Now().UTC(),
 				Payload:    databaseJSON,
 			},
