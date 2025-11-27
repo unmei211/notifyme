@@ -1,4 +1,4 @@
-package inbox
+package inbox_repository
 
 import (
 	"time"
