@@ -21,9 +21,16 @@ func NewKafkaLogger(logger *zap.SugaredLogger) *Logger {
 	return &Logger{logger: logger}
 }
 
-func Init(cfg *Config, zap *zap.SugaredLogger, ctx context.Context, consumeHandler messaging.ConsumeHandler) (producerManager messaging.IProducerManager, consumerManager messaging.IConsumerManager) {
-	producerManager = initProducerManager(cfg, zap, ctx)
-	consumerManager = initConsumerManager(cfg, zap, consumeHandler, ctx)
+func Init(
+	cfg *Config,
+	routingConfig *messaging.RoutingConfig,
+	zap *zap.SugaredLogger,
+	consumer messaging.IConsumer,
+	ctx context.Context,
+) (producerManager messaging.IProducerManager, fetchingManager messaging.IFetcherManager) {
 
-	return producerManager, consumerManager
+	producerManager = initProducerManager(cfg, zap, ctx)
+	fetchingManager = InitFetcher(cfg, routingConfig, zap, consumer, ctx)
+
+	return
 }

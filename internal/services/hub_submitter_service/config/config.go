@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/viper"
 	httpserver "github.com/unmei211/notifyme/internal/pkg/http_server/server"
 	"github.com/unmei211/notifyme/internal/pkg/inbox"
+	"github.com/unmei211/notifyme/internal/pkg/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/logger"
 	"github.com/unmei211/notifyme/internal/pkg/messaging"
-	"github.com/unmei211/notifyme/internal/pkg/messaging/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 )
 

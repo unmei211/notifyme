@@ -9,15 +9,6 @@ type ProducerConfig struct {
 	BatchTimeout int   `mapstructure:"batchTimeout"`
 }
 
-//type ConsumerConfig struct {
-//	Topic Topic `mapstructure:"topic"`
-//}
-
-//type ConsumeConfig struct {
-//	GroupId   string                            `mapstructure:"groupId"`
-//	Consumers map[msg.RoutingKey]ConsumerConfig `mapstructure:"consumers"`
-//}
-
 type FetchingConfig struct {
 	GroupId string `mapstructure:"groupId"`
 }

@@ -11,11 +11,11 @@ import (
 	"gorm.io/datatypes"
 )
 
-func PutHandlerInboxProvider(
+func InboxHandlerProvider(
 	inboxRepository Repository,
 	log *zap.SugaredLogger,
-) []inbox.PutHandler {
-	var handlers []inbox.PutHandler
+) []inbox.Handler {
+	var handlers []inbox.Handler
 
 	handlers = append(handlers, func(msg *messaging.Message, routingKey messaging.RoutingKey) error {
 		exists, err := inboxRepository.ExistsByMessageId(msg.MessageId)

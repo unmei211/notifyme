@@ -2,8 +2,9 @@ package config
 
 import (
 	"github.com/unmei211/notifyme/internal/pkg/inbox"
+	"github.com/unmei211/notifyme/internal/pkg/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/logger"
-	"github.com/unmei211/notifyme/internal/pkg/messaging/kafka"
+	"github.com/unmei211/notifyme/internal/pkg/messaging"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 )
 
@@ -31,4 +32,10 @@ func ProvideInboxConfig(
 	config *Config,
 ) *inbox.Config {
 	return config.Inbox
+}
+
+// ProvideMessagingConfig Provide messaging Config
+func ProvideMessagingConfig(
+	config *Config) *messaging.Config {
+	return config.Messaging
 }

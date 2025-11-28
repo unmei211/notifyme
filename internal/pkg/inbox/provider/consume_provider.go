@@ -10,16 +10,16 @@ type inboxConsumerProvider struct {
 }
 
 func (i inboxConsumerProvider) Consume(
-	msg *messaging.Message,
-	routingKey messaging.RoutingKey) error {
-	err := i.inbox.Put(msg, routingKey)
+	payload *messaging.Message, rawMsg interface{}, messageKey string, routingKey messaging.RoutingKey,
+) error {
+	err := i.inbox.Put(payload, rawMsg, messageKey, routingKey)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func ConsumeHandlerInboxProvider(
+func InboxConsumerProvider(
 	inbox inbox.Inbox,
 ) messaging.IConsumer {
 	return inboxConsumerProvider{

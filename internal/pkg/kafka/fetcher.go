@@ -1,4 +1,4 @@
-package fetcher
+package kafka
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/segmentio/kafka-go"
 	"github.com/unmei211/notifyme/internal/pkg/messaging"
-	kf "github.com/unmei211/notifyme/internal/pkg/messaging/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/worker"
 	"go.uber.org/zap"
 )
@@ -43,7 +42,7 @@ func (f *Fetcher) Fetch(ctx context.Context) error {
 		return err
 	}
 
-	err = f.consumer.Consume(&msg, f.routingKey)
+	err = f.consumer.Consume(&msg, &rawMsg, string(rawMsg.Key[:]), f.routingKey)
 	if err != nil {
 		f.log.Errorf("Can't handle message")
 		//TODO: may be infinity cycle. Implement dead_letters_queue
@@ -75,20 +74,20 @@ func (f *Fetcher) Stop() {
 }
 
 type Manager struct {
-	fetchingCfg    *kf.FetchingConfig
+	fetchingCfg    *FetchingConfig
 	routingCfg     *messaging.RoutingConfig
 	context        context.Context
 	log            *zap.SugaredLogger
 	routeToFetcher map[messaging.RoutingKey]*Fetcher
 }
 
-func Init(kafkaConfig *kf.Config,
+func InitFetcher(kafkaConfig *Config,
 	routingConfig *messaging.RoutingConfig,
 	log *zap.SugaredLogger,
 	consumer messaging.IConsumer,
 	ctx context.Context) *Manager {
 
-	kafkaLogger := kf.NewKafkaLogger(log)
+	kafkaLogger := NewKafkaLogger(log)
 
 	mng := &Manager{
 		fetchingCfg:    &kafkaConfig.Fetching,
@@ -132,6 +131,6 @@ func (m *Manager) Launch(ctx context.Context) {
 	runner.Launch(ctx)
 }
 
-func LaunchConsumers(manager Manager, ctx context.Context) {
+func LaunchFetcher(manager Manager, ctx context.Context) {
 	manager.Launch(ctx)
 }

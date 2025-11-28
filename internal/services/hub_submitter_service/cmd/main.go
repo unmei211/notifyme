@@ -6,8 +6,8 @@ import (
 	"github.com/unmei211/notifyme/internal/pkg/inbox"
 	inboxprovider "github.com/unmei211/notifyme/internal/pkg/inbox/provider"
 	pginbox "github.com/unmei211/notifyme/internal/pkg/inbox/repository"
+	"github.com/unmei211/notifyme/internal/pkg/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/logger"
-	"github.com/unmei211/notifyme/internal/pkg/messaging/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 	"github.com/unmei211/notifyme/internal/services/hub_submitter/config"
 	"github.com/unmei211/notifyme/internal/services/hub_submitter/server"
@@ -20,10 +20,12 @@ func main() {
 			fx.Provide(
 				// Config
 				config.InitConfig,
+				// Config : Providers
 				config.ProvideLoggerConfig,
 				config.ProvideDatabaseConfig,
 				config.ProvideInboxConfig,
 				config.ProvideKafkaConfig,
+				config.ProvideMessagingConfig,
 				// Logger
 				logger.InitLogger,
 				// Context
@@ -33,9 +35,9 @@ func main() {
 				// Database - Repository
 				pginbox.InitRepository,
 				// Inbox
-				pginbox.PutHandlerInboxProvider,
+				pginbox.InboxHandlerProvider,
 				inbox.InitInbox,
-				inboxprovider.ConsumeHandlerInboxProvider,
+				inboxprovider.InboxConsumerProvider,
 				// Messaging
 				kafka.Init,
 				// Server

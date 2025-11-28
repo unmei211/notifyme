@@ -1,5 +1,10 @@
 package messaging
 
 type IConsumer interface {
-	Consume(msg *Message, routingKey RoutingKey) error
+	Consume(
+		payload *Message,
+		rawMsg interface{},
+		messageKey string,
+		routingKey RoutingKey,
+	) error
 }
