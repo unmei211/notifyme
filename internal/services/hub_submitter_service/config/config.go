@@ -10,6 +10,7 @@ import (
 	httpserver "github.com/unmei211/notifyme/internal/pkg/http_server/server"
 	"github.com/unmei211/notifyme/internal/pkg/inbox"
 	"github.com/unmei211/notifyme/internal/pkg/logger"
+	"github.com/unmei211/notifyme/internal/pkg/messaging"
 	"github.com/unmei211/notifyme/internal/pkg/messaging/kafka"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 )
@@ -20,6 +21,7 @@ type Config struct {
 	Logger      *logger.Config      `mapstructure:"logger"`
 	Database    *orm.DatabaseConfig `mapstructure:"database"`
 	Kafka       *kafka.Config       `mapstructure:"kafka"`
+	Messaging   *messaging.Config   `mapstructure:"messaging"`
 	Inbox       *inbox.Config       `mapstructure:"inbox"`
 }
 

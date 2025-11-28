@@ -27,13 +27,22 @@ kafka:
       async: false
       batchSize: 10
       batchTimeout: 100
-# TODO: в качестве консюмер группы не юзать имя сервиса
-  consume:
-    groupId: "${KAFKA_CONSUME_GROUPID}"
-    consumers:
-      notificationSender_sentEvent:
-        topic: notification-sender.sent-event
-
+  # TODO: в качестве консюмер группы не юзать имя сервиса
+  fetching:
+    groupId: "${KAFKA_FETCHING_GROUPID}"
+messaging: {
+  routing: {
+    kafka: {
+      input: {
+        notificationSender_sentEvent: {
+          vendorKey: notification-sender.sent-event
+        }
+      },
+      output: {
+      }
+    }
+  }
+}
 inbox:
   put: { }
   poll: { }

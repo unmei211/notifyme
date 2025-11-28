@@ -9,16 +9,16 @@ import (
 
 type Topic string
 
-type kafkaLogger struct {
+type Logger struct {
 	logger *zap.SugaredLogger
 }
 
-func (l *kafkaLogger) Printf(format string, args ...interface{}) {
+func (l *Logger) Printf(format string, args ...interface{}) {
 	l.logger.Infof(format, args...)
 }
 
-func newKafkaLogger(logger *zap.SugaredLogger) *kafkaLogger {
-	return &kafkaLogger{logger: logger}
+func NewKafkaLogger(logger *zap.SugaredLogger) *Logger {
+	return &Logger{logger: logger}
 }
 
 func Init(cfg *Config, zap *zap.SugaredLogger, ctx context.Context, consumeHandler messaging.ConsumeHandler) (producerManager messaging.IProducerManager, consumerManager messaging.IConsumerManager) {

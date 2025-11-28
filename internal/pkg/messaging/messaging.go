@@ -11,6 +11,8 @@ const (
 	MessageEvent   MessageType = "event"
 )
 
+type Vendor string
+
 type MessageType string
 type RoutingKey string
 
