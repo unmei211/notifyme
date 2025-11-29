@@ -5,24 +5,24 @@ import (
 	"github.com/unmei211/notifyme/internal/pkg/messaging"
 )
 
-type inboxConsumerProvider struct {
-	inbox inbox.Inbox
+type inboxConsumerAdapter struct {
+	inbox inbox.MessageBoxing
 }
 
-func (i inboxConsumerProvider) Consume(
+func (i inboxConsumerAdapter) Consume(
 	payload *messaging.Message, rawMsg interface{}, messageKey string, routingKey messaging.RoutingKey,
 ) error {
-	err := i.inbox.Put(payload, rawMsg, messageKey, routingKey)
+	err := i.inbox.Box(payload, rawMsg, messageKey, routingKey)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func InboxConsumerProvider(
-	inbox inbox.Inbox,
+func InitConsumer(
+	inbox inbox.MessageBoxing,
 ) messaging.IConsumer {
-	return inboxConsumerProvider{
+	return inboxConsumerAdapter{
 		inbox: inbox,
 	}
 }

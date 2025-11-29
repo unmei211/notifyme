@@ -1,4 +1,4 @@
-package inbox_repository
+package inbox
 
 import (
 	"github.com/pkg/errors"
@@ -11,6 +11,11 @@ type postgresRepository struct {
 	log  *zap.SugaredLogger
 	cfg  *orm.DatabaseConfig
 	gorm *orm.Gorm
+}
+
+func (r *postgresRepository) FindInboxesForWorker(workerId int, workersCount int) ([]*MessageInbox, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (r *postgresRepository) ExistsByMessageId(messageId uuid.UUID) (bool, error) {

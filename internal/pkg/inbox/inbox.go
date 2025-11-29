@@ -6,20 +6,20 @@ import (
 	"go.uber.org/zap"
 )
 
-type Handler func(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
+type BoxingHandler func(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
 
-type Inbox interface {
-	Put(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
+type MessageBoxing interface {
+	Box(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
 
-	handlerRegistrar(handler Handler)
+	handlerRegistrar(handler BoxingHandler)
 }
 
-type SimpleInbox struct {
+type SimpleMessageBoxing struct {
 	log      *zap.SugaredLogger
-	handlers []Handler
+	handlers []BoxingHandler
 }
 
-func (i *SimpleInbox) Put(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error {
+func (i *SimpleMessageBoxing) Box(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error {
 	log.Debugf("Try put message {%s} in inbox", payload.MessageId)
 	var err error = nil
 
@@ -33,17 +33,33 @@ func (i *SimpleInbox) Put(payload *msg.Message, rawMsg interface{}, messageKey s
 
 	return nil
 }
-func (i *SimpleInbox) handlerRegistrar(handler Handler) {
+func (i *SimpleMessageBoxing) handlerRegistrar(handler BoxingHandler) {
 	i.handlers = append(i.handlers, handler)
 }
 
-func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers []Handler) Inbox {
-	inbx := &SimpleInbox{
+func InitMessageBoxing(cfg *Config, log *zap.SugaredLogger, handlers []BoxingHandler) MessageBoxing {
+	inbx := &SimpleMessageBoxing{
 		log: log,
 	}
+
 	for _, handler := range handlers {
 		inbx.handlerRegistrar(handler)
 	}
 
 	return inbx
+}
+
+type UnboxingHandler func(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
+
+type MessageUnboxing interface {
+	Unbox(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
+}
+
+type SimpleMessageUnboxing struct {
+	log      *zap.SugaredLogger
+	handlers []UnboxingHandler
+}
+
+func (u *SimpleMessageUnboxing) Unbox(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error {
+	return nil
 }

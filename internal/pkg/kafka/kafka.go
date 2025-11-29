@@ -23,14 +23,15 @@ func NewKafkaLogger(logger *zap.SugaredLogger) *Logger {
 
 func Init(
 	cfg *Config,
-	routingConfig *messaging.RoutingConfig,
+	messagingConfig *messaging.Config,
 	zap *zap.SugaredLogger,
 	consumer messaging.IConsumer,
 	ctx context.Context,
 ) (producerManager messaging.IProducerManager, fetchingManager messaging.IFetcherManager) {
+	routingConfig := messagingConfig.Routing[messaging.Kafka]
 
 	producerManager = initProducerManager(cfg, zap, ctx)
-	fetchingManager = InitFetcher(cfg, routingConfig, zap, consumer, ctx)
+	fetchingManager = InitFetcher(cfg, &routingConfig, zap, consumer, ctx)
 
 	return
 }

@@ -1,5 +1,9 @@
 package messaging
 
+const (
+	Kafka Vendor = "kafka"
+)
+
 type InputConfig struct {
 	VendorKey string
 }

@@ -1,0 +1,87 @@
+@startuml
+
+queue "Kafka" as k
+participant "Messaging.Fetcher" as f
+
+box Inbox Layer #LightBlue
+    participant "Inbox.ConsumerAdapter" as c
+    participant "Inbox.Boxing" as b
+    participant "Inbox.BoxingAdapter" as ba
+    participant "Inbox.Service" as s
+    participant "Inbox.Repository" as r
+end box
+
+database "Database" as d
+
+
+f -> k : fetchMessage
+activate f
+
+activate k
+
+k -->> f : brokerMessage
+deactivate k
+
+f -> c : consume(brokerMessage)
+
+activate c
+
+c -> b : put(message)
+
+activate b
+
+b -> ba : handle(inbox)
+
+activate ba
+
+ba -> s : handleMessage(inbox)
+
+activate s
+
+s -> r : existsByMessageId()
+activate r
+
+r -> d
+activate d
+
+d -->> r
+deactivate d
+
+r -->> s : return exists
+deactivate r
+
+alt Inbox Exists
+    s -->> ba : return nil
+else
+    s -> r : add(inbox)
+
+activate r
+
+activate d
+r -> d
+d -->> r
+deactivate d
+
+r -->> s : return inbox, err
+deactivate r
+
+s -->> ba : return err
+end
+deactivate s
+
+ba -->> b : return err
+deactivate ba
+
+b -->> c : return err
+deactivate b
+
+c -->> f : return err
+deactivate c
+
+opt success
+    f -> k : commit message
+end
+
+deactivate f
+
+@enduml

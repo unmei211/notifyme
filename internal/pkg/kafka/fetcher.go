@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/segmentio/kafka-go"
@@ -21,6 +22,7 @@ func (f *Fetcher) Fallback() {
 }
 
 func (f *Fetcher) Fetch(ctx context.Context) error {
+	// TODO: If an error occurs during processing, the message will not be sent again.
 	rawMsg, err := f.reader.FetchMessage(ctx)
 
 	if err != nil {
@@ -28,7 +30,7 @@ func (f *Fetcher) Fetch(ctx context.Context) error {
 		//TODO: dead_letters_queue impl
 		return nil
 	}
-
+	
 	msg := messaging.Message{}
 	err = sonic.Unmarshal(rawMsg.Value, &msg)
 
@@ -85,7 +87,7 @@ func InitFetcher(kafkaConfig *Config,
 	routingConfig *messaging.RoutingConfig,
 	log *zap.SugaredLogger,
 	consumer messaging.IConsumer,
-	ctx context.Context) *Manager {
+	ctx context.Context) messaging.IFetcherManager {
 
 	kafkaLogger := NewKafkaLogger(log)
 
@@ -106,6 +108,7 @@ func InitFetcher(kafkaConfig *Config,
 				Topic:   inputConfig.VendorKey,
 				Logger:  kafkaLogger,
 				GroupID: kafkaConfig.Fetching.GroupId,
+				MaxWait: 60 * time.Second,
 			}),
 			log:        log,
 			routingKey: routingKey,
@@ -131,6 +134,7 @@ func (m *Manager) Launch(ctx context.Context) {
 	runner.Launch(ctx)
 }
 
-func LaunchFetcher(manager Manager, ctx context.Context) {
+func LaunchFetcher(manager messaging.IFetcherManager, ctx context.Context) {
+	println("wtf")
 	manager.Launch(ctx)
 }
