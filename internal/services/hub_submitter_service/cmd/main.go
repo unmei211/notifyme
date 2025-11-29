@@ -4,6 +4,7 @@ import (
 	"context"
 
 	messaginginbox "github.com/unmei211/notifyme/internal/pkg/adapters/messaging/inbox"
+	eventrouter "github.com/unmei211/notifyme/internal/pkg/event_router"
 	httpserver "github.com/unmei211/notifyme/internal/pkg/http_server/server"
 	httpshudown "github.com/unmei211/notifyme/internal/pkg/http_server/shutdown"
 	"github.com/unmei211/notifyme/internal/pkg/inbox"
@@ -14,6 +15,7 @@ import (
 	"github.com/unmei211/notifyme/internal/services/hub_submitter/config"
 	"github.com/unmei211/notifyme/internal/services/hub_submitter/server"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -43,20 +45,26 @@ func main() {
 				httpshudown.NewContext,
 				// Database
 				orm.InitGorm,
-				// MessageBoxing - Repository
+				// Event Router TODO: register routes
+				eventrouter.Init,
+				// Inbox - Repository
 				inbox.InitRepository,
-				// MessageBoxing - Service
+				// Inbox - Service
 				inbox.InitService,
+				// Inbox - Boxing - Handlers
 				messaginginbox.InitHandlers,
-				// MessageBoxing
+				// Inbox - MessageBoxing
 				inbox.InitMessageBoxing,
 				messaginginbox.InitConsumer,
-				// Messaging
+				// Messaging - Kafka
 				fx.Annotate(
 					kafka.Init,
 					fx.ResultTags(`name:"kafka.manager.producer"`, `name:"kafka.manager.fetcher"`),
 				),
-				//kafka.Init,
+				// Messaging - Unboxing
+				func(repository inbox.Repository, router eventrouter.IRouter, cfg *inbox.Config, log *zap.SugaredLogger) *inbox.MessageUnbox {
+					return inbox.InitMessageUnbox(repository, router, cfg, log)
+				},
 				// Server
 				httpserver.NewHttpServer,
 			),
@@ -70,6 +78,9 @@ func main() {
 					fx.ParamTags(`name:"kafka.manager.fetcher"`),
 				),
 			),
+			fx.Invoke(func(unboxing *inbox.MessageUnbox, ctx context.Context) {
+				unboxing.Launch(ctx)
+			}),
 		),
 	).Run()
 }

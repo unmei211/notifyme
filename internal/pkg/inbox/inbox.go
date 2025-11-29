@@ -48,18 +48,3 @@ func InitMessageBoxing(cfg *Config, log *zap.SugaredLogger, handlers []BoxingHan
 
 	return inbx
 }
-
-type UnboxingHandler func(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
-
-type MessageUnboxing interface {
-	Unbox(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
-}
-
-type SimpleMessageUnboxing struct {
-	log      *zap.SugaredLogger
-	handlers []UnboxingHandler
-}
-
-func (u *SimpleMessageUnboxing) Unbox(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error {
-	return nil
-}

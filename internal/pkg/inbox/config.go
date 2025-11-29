@@ -3,10 +3,11 @@ package inbox
 type PutConfig struct {
 }
 
-type PollConfig struct {
+type UnboxConfig struct {
+	MaxWorkers int `mapstructure:"maxWorkers"`
 }
 
 type Config struct {
-	put  PutConfig  `mapstructure:"put"`
-	poll PollConfig `mapstructure:"poll"`
+	Put   PutConfig   `mapstructure:"put"`
+	Unbox UnboxConfig `mapstructure:"unbox"`
 }

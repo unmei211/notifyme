@@ -52,7 +52,7 @@ func (s *Service) HandleMessage(
 			MessageId:     payload.MessageId,
 			CorrelationId: payload.CorrelationId,
 			MessageKey:    messageKey,
-			RoutingKey:    string(routingKey),
+			RoutingKey:    routingKey,
 			ReceivedAt:    time.Now().UTC(),
 			Payload:       payloadJson,
 			RawMessage:    rawMessageJsonb,
