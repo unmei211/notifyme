@@ -27,3 +27,8 @@ soft-clean:
 
 reload-services:
 	docker compose up -d hub_submitter --build
+
+infra:
+	docker compose up -d \
+	infra-kafka infra-postgres infra-kafka2 infra-kafka3 \
+	infra-tofu infra-kafka-ui --build

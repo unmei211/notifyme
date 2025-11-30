@@ -13,6 +13,7 @@ import (
 	"github.com/unmei211/notifyme/internal/pkg/messaging"
 	"github.com/unmei211/notifyme/internal/pkg/orm"
 	"github.com/unmei211/notifyme/internal/services/hub_submitter/config"
+	"github.com/unmei211/notifyme/internal/services/hub_submitter/hub_submitter/consumers"
 	"github.com/unmei211/notifyme/internal/services/hub_submitter/server"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -68,6 +69,8 @@ func main() {
 				// Server
 				httpserver.NewHttpServer,
 			),
+			// Application Consumers Binding
+			fx.Invoke(consumers.Bind),
 			fx.Invoke(orm.Migrate),
 			fx.Invoke(server.RunServers),
 			fx.Invoke(

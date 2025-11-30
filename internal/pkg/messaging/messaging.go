@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"encoding"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -15,6 +16,13 @@ type Vendor string
 
 type MessageType string
 type RoutingKey string
+
+var _ encoding.TextUnmarshaler = (*RoutingKey)(nil)
+
+func (r *RoutingKey) UnmarshalText(text []byte) error {
+	*r = RoutingKey(text)
+	return nil
+}
 
 type Message struct {
 	MessageId     uuid.UUID

@@ -2,6 +2,7 @@ package inbox
 
 import (
 	"context"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/labstack/gommon/log"
@@ -65,7 +66,7 @@ var _ messaging.IFetcher = (*Processor)(nil)
 func (p *Processor) Fetch(ctx context.Context) error {
 	log.Debugf("Regular fetch inboxes for worker: %d", p.workerId)
 	// TODO: pagination
-	inboxes, err := p.repository.FindInboxesForWorker(p.workerId, p.workerCount)
+	inboxes, err := p.repository.FindInboxesForWorker(p.workerId, p.workerCount, 1, 50)
 	log.Debugf("Founded %d inbox messages for worker %d", len(inboxes), p.workerId)
 
 	if err != nil {
@@ -73,9 +74,18 @@ func (p *Processor) Fetch(ctx context.Context) error {
 		return err
 	}
 
+	if inboxes == nil {
+		time.Sleep(1 * time.Second)
+		return nil
+	}
+
 	blacklist := map[string]*MessageInbox{}
 
 	for _, inbox := range inboxes {
+		if _, exists := blacklist[inbox.MessageKey]; exists {
+			// TODO: dead_letters
+			continue
+		}
 
 		msg := &messaging.Message{}
 		err = sonic.Unmarshal(inbox.Payload, msg)
@@ -86,14 +96,25 @@ func (p *Processor) Fetch(ctx context.Context) error {
 		}
 
 		var rawMsg interface{}
-		err = sonic.Unmarshal(inbox.RawMessage, rawMsg)
+		err = sonic.Unmarshal(inbox.RawMessage, &rawMsg)
 
 		if err != nil {
 			blacklist[inbox.MessageKey] = inbox
 			continue
 		}
 
+		log.Debugf("WorkerId: %d. Try consume with routing key %s", p.workerId, inbox.RoutingKey)
+		// TODO: Подумать над тем, чтобы N воркеров выгребали записи и M воркеров их обрабатывали
 		err := p.consumer.Consume(msg, rawMsg, inbox.MessageKey, inbox.RoutingKey)
+		if err != nil {
+			blacklist[inbox.MessageKey] = inbox
+			return err
+		}
+
+		var now = time.Now().UTC()
+		inbox.ProcessedAt = &now
+
+		err = p.repository.Update(inbox)
 		if err != nil {
 			blacklist[inbox.MessageKey] = inbox
 			return err

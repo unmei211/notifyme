@@ -30,7 +30,7 @@ func (f *Fetcher) Fetch(ctx context.Context) error {
 		//TODO: dead_letters_queue impl
 		return nil
 	}
-	
+
 	msg := messaging.Message{}
 	err = sonic.Unmarshal(rawMsg.Value, &msg)
 

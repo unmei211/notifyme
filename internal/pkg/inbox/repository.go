@@ -11,7 +11,8 @@ import (
 type Repository interface {
 	ExistsByMessageId(messageId uuid.UUID) (bool, error)
 	Add(msg *MessageInbox) (*MessageInbox, error)
-	FindInboxesForWorker(workerId int, workersCount int) ([]*MessageInbox, error)
+	FindInboxesForWorker(workerId int, workersCount int, page int, pageSize int) ([]*MessageInbox, error)
+	Update(*MessageInbox) error
 }
 type MessageInbox struct {
 	MessageId     uuid.UUID `gorm:"primaryKey"`
@@ -19,7 +20,7 @@ type MessageInbox struct {
 	MessageKey    string
 	RoutingKey    messaging.RoutingKey
 	ReceivedAt    time.Time
-	ProcessedAt   time.Time
+	ProcessedAt   *time.Time
 	Payload       datatypes.JSON `gorm:"type:jsonb"`
 	RawMessage    datatypes.JSON `gorm:"type:jsonb"`
 }
