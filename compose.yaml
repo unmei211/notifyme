@@ -112,6 +112,10 @@ services:
     depends_on:
       infra-kafka:
         condition: service_healthy
+      infra-kafka2:
+        condition: service_healthy
+      infra-kafka3:
+        condition: service_healthy
     command:
       [ "java" , "-jar", "./kafka-ui-api.jar" ]
   #  services
@@ -137,7 +141,7 @@ services:
       DATABASE_SCHEMA: "${HUBSUBMITTER_DATABASE_SCHEMA}"
       # Hub_submitter : Kafka
       KAFKA_ADDR: "${HUBSUBMITTER_KAFKA_ADDR}"      # Hub_submitter : HTTP
-      KAFKA_CONSUME_GROUPID: "${HUBSUBMITTER_KAFKA_CONSUME_GROUPID}"
+      KAFKA_FETCHING_GROUPID: "${HUBSUBMITTER_KAFKA_FETCHING_GROUP_ID}"
       # Hub_submitter : HTTP
       HTTPSERVER_ENV: "${ENV}"
       HTTPSERVER_PORT: "${HUBSUBMITTER_HTTP_PORT}"

@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
-Контейнеризация
+
 const (
 	MaxHeaderBytes = 1 << 20
 	ReadTimeout    = 15 * time.Second

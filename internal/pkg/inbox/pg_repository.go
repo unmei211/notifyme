@@ -1,4 +1,4 @@
-package inbox_repository
+package inbox
 
 import (
 	"github.com/pkg/errors"
@@ -11,6 +11,32 @@ type postgresRepository struct {
 	log  *zap.SugaredLogger
 	cfg  *orm.DatabaseConfig
 	gorm *orm.Gorm
+}
+
+var _ Repository = (*postgresRepository)(nil)
+
+func (r *postgresRepository) Update(inbox *MessageInbox) error {
+	res := r.gorm.DB.Save(inbox)
+	return res.Error
+}
+
+func (r *postgresRepository) FindInboxesForWorker(workerId int, workersCount int, page int, pageSize int) ([]*MessageInbox, error) {
+
+	sql := `
+		SELECT * FROM inbox i
+		WHERE
+		    mod(abs(hashtext(i.message_key)::bigint), ?) = ?
+			AND
+		    i.processed_at IS NULL 
+		ORDER BY i.received_at
+		LIMIT ? OFFSET ?
+    `
+
+	var result []*MessageInbox
+
+	tx := r.gorm.DB.Raw(sql, workersCount, workerId, pageSize, (page-1)*pageSize).Scan(&result)
+
+	return result, tx.Error
 }
 
 func (r *postgresRepository) ExistsByMessageId(messageId uuid.UUID) (bool, error) {

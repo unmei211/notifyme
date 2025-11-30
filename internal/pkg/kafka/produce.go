@@ -58,7 +58,7 @@ func (m *ProducerManager) Send(message *msg.Message, routingKey msg.RoutingKey) 
 }
 
 func initProducerManager(cfg *Config, log *zap.SugaredLogger, ctx context.Context) (manager msg.IProducerManager) {
-	kafkaLogger := newKafkaLogger(log)
+	kafkaLogger := NewKafkaLogger(log)
 
 	mng := &ProducerManager{
 		producers: map[msg.RoutingKey]msg.IProducer{},

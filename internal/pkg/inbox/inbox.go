@@ -6,43 +6,44 @@ import (
 	"go.uber.org/zap"
 )
 
-type PutHandler func(msg *msg.Message, routingKey msg.RoutingKey) error
+type BoxingHandler func(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
 
-type Inbox interface {
-	Put(msg *msg.Message, routingKey msg.RoutingKey) error
+type MessageBoxing interface {
+	Box(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error
 
-	regPutHandler(handler PutHandler)
+	handlerRegistrar(handler BoxingHandler)
 }
 
-type SimpleInbox struct {
-	log         *zap.SugaredLogger
-	putHandlers []PutHandler
+type SimpleMessageBoxing struct {
+	log      *zap.SugaredLogger
+	handlers []BoxingHandler
 }
 
-func (i *SimpleInbox) Put(msg *msg.Message, routingKey msg.RoutingKey) error {
-	log.Debugf("Try put message {%s} in inbox", msg.MessageId)
+func (i *SimpleMessageBoxing) Box(payload *msg.Message, rawMsg interface{}, messageKey string, routingKey msg.RoutingKey) error {
+	log.Debugf("Try put message {%s} in inbox", payload.MessageId)
 	var err error = nil
 
-	for _, handler := range i.putHandlers {
-		err = handler(msg, routingKey)
+	for _, handler := range i.handlers {
+		err = handler(payload, rawMsg, messageKey, routingKey)
 		if err != nil {
-			log.Errorf("Can't handle message {%s} in inbox. Error: {%+v}", msg.MessageId, err)
+			log.Errorf("Can't handle message {%s} in inbox. Error: {%+v}", payload.MessageId, err)
 			return err
 		}
 	}
 
 	return nil
 }
-func (i *SimpleInbox) regPutHandler(handler PutHandler) {
-	i.putHandlers = append(i.putHandlers, handler)
+func (i *SimpleMessageBoxing) handlerRegistrar(handler BoxingHandler) {
+	i.handlers = append(i.handlers, handler)
 }
 
-func InitInbox(cfg *Config, log *zap.SugaredLogger, handlers []PutHandler) Inbox {
-	inbx := &SimpleInbox{
+func InitMessageBoxing(cfg *Config, log *zap.SugaredLogger, handlers []BoxingHandler) MessageBoxing {
+	inbx := &SimpleMessageBoxing{
 		log: log,
 	}
+
 	for _, handler := range handlers {
-		inbx.regPutHandler(handler)
+		inbx.handlerRegistrar(handler)
 	}
 
 	return inbx
